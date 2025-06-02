@@ -14,7 +14,7 @@ namespace CopilotStudioClientSample;
 internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
 {
     private const string BatchFileName = "questions.json";
-    private const string ExcelFileName = "results.xlsx";
+    private static readonly string ExcelFileName = $"results_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.xlsx";
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -106,14 +106,19 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
             break;
         }
 
-        foreach (var question in questions)
+        for (int i = 0; i < questions.Count; i++)
         {
-            Console.WriteLine($"\nUser> {question}");
+            var question = questions[i];
+            Console.WriteLine($"\nAsking question {i + 1} of {questions.Count}");
+            Console.WriteLine($"User> {question}");
             string response = "";
             await foreach (Activity act in copilotClient.AskQuestionAsync(question, null, cancellationToken))
             {
-                Console.WriteLine("Agent> " + act.Text);
-                response += act.Text + "\n";
+                if (!string.IsNullOrEmpty(act.Text))
+                {
+                    Console.WriteLine("Agent> " + act.Text);
+                    response += act.Text + "\n";
+                }
             }
 
             worksheet.Cell(row, 1).Value = question;
@@ -121,6 +126,7 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
             worksheet.Cell(row, 3).Value = DateTime.Now;
             row++;
         }
+
 
         workbook.SaveAs(ExcelFileName);
         Console.WriteLine($"\nResults saved to {ExcelFileName}");
