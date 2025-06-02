@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35222.181
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CopilotStudioClient", "CopilotStudioClient.csproj", "{B73D0AA0-E2FC-493D-AB24-BF9A0CD85E20}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B73D0AA0-E2FC-493D-AB24-BF9A0CD85E20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B73D0AA0-E2FC-493D-AB24-BF9A0CD85E20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B73D0AA0-E2FC-493D-AB24-BF9A0CD85E20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B73D0AA0-E2FC-493D-AB24-BF9A0CD85E20}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D849301B-788B-46D8-8432-BE2A56E5B491}
+	EndGlobalSection
+EndGlobal
