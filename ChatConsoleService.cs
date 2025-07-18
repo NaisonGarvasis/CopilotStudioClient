@@ -138,6 +138,29 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
         {
             case "message":
                 Console.WriteLine(act.Text);
+                
+    // Display citations if available
+    if (act.AdditionalProperties != null &&
+        act.AdditionalProperties.TryGetValue("citations", out var citationsRaw))
+    {
+        try
+        {
+            var citations = JsonConvert.DeserializeObject<List<Citation>>(citationsRaw.ToString());
+            if (citations != null && citations.Count > 0)
+            {
+                Console.WriteLine("\nSources:");
+                foreach (var citation in citations)
+                {
+                    Console.WriteLine($"  - {citation.Title} ({citation.ProviderDisplayName})");
+                    Console.WriteLine($"    {citation.Url}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("[!] Error parsing citations: " + ex.Message);
+        }
+    }
 
                 if (act.SuggestedActions?.Actions?.Count > 0)
                 {
