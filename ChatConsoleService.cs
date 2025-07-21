@@ -48,7 +48,7 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
             await RunInteractiveMode(cancellationToken);
         }
         Console.WriteLine("\nExecution completed. Press Enter to exit.");
-        Console.ReadLine();
+    Console.ReadLine();
     }
 
     private async Task RunInteractiveMode(CancellationToken cancellationToken)
@@ -117,9 +117,9 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
         var outputSheet = outputWorkbook.Worksheets.Add("Results");
         outputSheet.Cell(1, 1).Value = "Question";
         outputSheet.Cell(1, 2).Value = "Response";
-       // outputSheet.Cell(1, 3).Value = "Conversation id";
-        outputSheet.Cell(1, 3).Value = "Timestamp";
-        outputSheet.Cell(1, 4).Value = "Response Log";
+        outputSheet.Cell(1, 3).Value = "Conversation id";
+        outputSheet.Cell(1, 4).Value = "Timestamp";
+        outputSheet.Cell(1, 5).Value = "Response Log";
 
         int outputRow = 2;
 
@@ -128,9 +128,9 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
             Console.WriteLine("Agent> " + act.Text);
             outputSheet.Cell(outputRow, 1).Value = "System Start";
             outputSheet.Cell(outputRow, 2).Value = act.Text;
-           // outputSheet.Cell(outputRow, 3).Value = act.Text;
             outputSheet.Cell(outputRow, 3).Value = act.Text;
-            outputSheet.Cell(outputRow, 4).Value = DateTime.Now;
+            outputSheet.Cell(outputRow, 4).Value = act.Text;
+            outputSheet.Cell(outputRow, 5).Value = DateTime.Now;
             outputRow++;
             break;
         }
@@ -141,7 +141,7 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
             Console.WriteLine($"\nAsking question {i + 1} of {questions.Count}");
             Console.WriteLine($"User> {question}");
             string response = "";
-            string completeReponse = "";
+            string responseLog = "";
             string conversationId = "";
 
             await foreach (Activity act in copilotClient.AskQuestionAsync(question, null, cancellationToken))
@@ -151,18 +151,22 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
                     Console.WriteLine("Agent> " + act.Text);
                     response += act.Text + "\n";
                 }
-               completeReponse += JsonConvert.SerializeObject(act, Formatting.Indented) + "\n";
-               // conversationId += act.Conversation.Id;
+               responseLog += JsonConvert.SerializeObject(act, Formatting.Indented) + "\n";
+                if (act.Conversation != null)
+                {
+                    conversationId += act.Conversation.Id;
+                }
 
             }
 
-            string trimmedResponse = response.Trim();
+            string trimmedResponse = response.Length > 32767 ? response.Substring(0, 32767) : response;
+            string trimmedResponseLog = responseLog.Length > 32767 ? responseLog.Substring(0, 32767) : responseLog;
 
             outputSheet.Cell(outputRow, 1).Value = question;
             outputSheet.Cell(outputRow, 2).Value = trimmedResponse;
-         //   outputSheet.Cell(outputRow, 3).Value = conversationId;
-            outputSheet.Cell(outputRow, 3).Value = DateTime.Now;
-            outputSheet.Cell(outputRow, 4).Value = completeReponse;
+            outputSheet.Cell(outputRow, 3).Value = conversationId;
+            outputSheet.Cell(outputRow, 4).Value = DateTime.Now;
+            outputSheet.Cell(outputRow, 5).Value = trimmedResponseLog;
             outputRow++;
         }
 
