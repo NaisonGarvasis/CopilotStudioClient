@@ -151,7 +151,7 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
                     Console.WriteLine("Agent> " + act.Text);
                     response += act.Text + "\n";
                 }
-               responseLog += JsonConvert.SerializeObject(act, Formatting.Indented) + "\n";
+               responseLog += JsonConvert.SerializeObject(act.Entities, Formatting.Indented) + "\n";
                 if (act.Conversation != null)
                 {
                     conversationId += act.Conversation.Id;
