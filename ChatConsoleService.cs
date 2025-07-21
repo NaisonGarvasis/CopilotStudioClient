@@ -8,6 +8,7 @@ using System.Text.Json;
 using Newtonsoft.Json;
 using ClosedXML.Excel;
 using JsonSerializer = System.Text.Json.JsonSerializer;
+using System.ComponentModel;
 
 namespace CopilotStudioClientSample;
 
@@ -108,9 +109,9 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
         var outputSheet = outputWorkbook.Worksheets.Add("Results");
         outputSheet.Cell(1, 1).Value = "Question";
         outputSheet.Cell(1, 2).Value = "Response";
-        outputSheet.Cell(1, 3).Value = "Response_Copy1";
-        outputSheet.Cell(1, 4).Value = "Response_Copy2";
-        outputSheet.Cell(1, 5).Value = "Timestamp";
+        outputSheet.Cell(1, 3).Value = "Conversation id";
+        outputSheet.Cell(1, 4).Value = "Timestamp";
+        outputSheet.Cell(1, 5).Value = "Response Log";
 
         int outputRow = 2;
 
@@ -132,6 +133,8 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
             Console.WriteLine($"\nAsking question {i + 1} of {questions.Count}");
             Console.WriteLine($"User> {question}");
             string response = "";
+            string completeReponse = "";
+            string conversationId = "";
 
             await foreach (Activity act in copilotClient.AskQuestionAsync(question, null, cancellationToken))
             {
@@ -140,15 +143,18 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
                     Console.WriteLine("Agent> " + act.Text);
                     response += act.Text + "\n";
                 }
+               completeReponse += JsonConvert.SerializeObject(act, Formatting.Indented) + "\n";
+                conversationId += act.Conversation.Id;
+
             }
 
             string trimmedResponse = response.Trim();
 
             outputSheet.Cell(outputRow, 1).Value = question;
             outputSheet.Cell(outputRow, 2).Value = trimmedResponse;
-            outputSheet.Cell(outputRow, 3).Value = trimmedResponse;
-            outputSheet.Cell(outputRow, 4).Value = trimmedResponse;
-            outputSheet.Cell(outputRow, 5).Value = DateTime.Now;
+            outputSheet.Cell(outputRow, 3).Value = conversationId;
+            outputSheet.Cell(outputRow, 4).Value = DateTime.Now;
+            outputSheet.Cell(outputRow, 5).Value = completeReponse;
             outputRow++;
         }
 
@@ -162,29 +168,6 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
         {
             case "message":
                 Console.WriteLine(act.Text);
-                
-    // Display citations if available
-    if (act.AdditionalProperties != null &&
-        act.AdditionalProperties.TryGetValue("citations", out var citationsRaw))
-    {
-        try
-        {
-            var citations = JsonConvert.DeserializeObject<List<Citation>>(citationsRaw.ToString());
-            if (citations != null && citations.Count > 0)
-            {
-                Console.WriteLine("\nSources:");
-                foreach (var citation in citations)
-                {
-                    Console.WriteLine($"  - {citation.Title} ({citation.ProviderDisplayName})");
-                    Console.WriteLine($"    {citation.Url}");
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("[!] Error parsing citations: " + ex.Message);
-        }
-    }
 
                 if (act.SuggestedActions?.Actions?.Count > 0)
                 {
