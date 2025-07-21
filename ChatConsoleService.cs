@@ -28,19 +28,25 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
         Task inputTask = Task.Run(() => input = Console.ReadLine());
         bool completedInTime = await Task.WhenAny(inputTask, Task.Delay(15000)) == inputTask;
 
-        if (completedInTime && input?.Trim() == "1")
+        if (completedInTime)
         {
-            runInBatch = false;
+            if (input?.Trim() == "1")
+            {
+                runInBatch = false;
+            }
         }
-        else
+        
+        if (runInBatch)
         {
-            Console.WriteLine("\nNo valid input received. Running batch mode by default.");
+            Console.WriteLine("\nRunning batch mode...");
+            await RunBatchMode(cancellationToken);
         }
 
-        if (runInBatch)
-            await RunBatchMode(cancellationToken);
         else
+        {
+            Console.WriteLine("\nRunning Interactive mode mode...");
             await RunInteractiveMode(cancellationToken);
+        }
     }
 
     private async Task RunInteractiveMode(CancellationToken cancellationToken)
