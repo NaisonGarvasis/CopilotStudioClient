@@ -117,9 +117,9 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
         var outputSheet = outputWorkbook.Worksheets.Add("Results");
         outputSheet.Cell(1, 1).Value = "Question";
         outputSheet.Cell(1, 2).Value = "Response";
-        outputSheet.Cell(1, 3).Value = "Conversation id";
-        outputSheet.Cell(1, 4).Value = "Timestamp";
-        outputSheet.Cell(1, 5).Value = "Response Log";
+       // outputSheet.Cell(1, 3).Value = "Conversation id";
+        outputSheet.Cell(1, 3).Value = "Timestamp";
+        outputSheet.Cell(1, 4).Value = "Response Log";
 
         int outputRow = 2;
 
@@ -128,9 +128,9 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
             Console.WriteLine("Agent> " + act.Text);
             outputSheet.Cell(outputRow, 1).Value = "System Start";
             outputSheet.Cell(outputRow, 2).Value = act.Text;
+           // outputSheet.Cell(outputRow, 3).Value = act.Text;
             outputSheet.Cell(outputRow, 3).Value = act.Text;
-            outputSheet.Cell(outputRow, 4).Value = act.Text;
-            outputSheet.Cell(outputRow, 5).Value = DateTime.Now;
+            outputSheet.Cell(outputRow, 4).Value = DateTime.Now;
             outputRow++;
             break;
         }
@@ -152,7 +152,7 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
                     response += act.Text + "\n";
                 }
                completeReponse += JsonConvert.SerializeObject(act, Formatting.Indented) + "\n";
-                conversationId += act.Conversation.Id;
+               // conversationId += act.Conversation.Id;
 
             }
 
