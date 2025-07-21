@@ -13,15 +13,14 @@ namespace CopilotStudioClientSample;
 
 internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
 {
-    private const string BatchFileName = "questions.json";
-    private static readonly string ExcelFileName = $"results_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.xlsx";
+    private static readonly string ExcelFileName = $"Response_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.xlsx";
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         bool runInBatch = true;
         Console.WriteLine("\nChoose an option:");
         Console.WriteLine("1. Ask your own questions");
-        Console.WriteLine("2. Run batch from questions.json");
+        Console.WriteLine("2. Run batch from questions.xlsx");
         Console.Write("\nEnter your choice (defaulting to batch in 15 seconds): ");
 
         string? input = null;
@@ -75,34 +74,55 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
 
     private async Task RunBatchMode(CancellationToken cancellationToken)
     {
-        if (!File.Exists(BatchFileName))
+        const string ExcelInputFile = "questions.xlsx";
+        const string SheetName = "Questions";
+        const int QuestionColumnIndex = 1; // Column A
+        const int StartRow = 2; // Assuming row 1 is header
+
+        if (!File.Exists(ExcelInputFile))
         {
-            Console.WriteLine($"Error: {BatchFileName} not found.");
+            Console.WriteLine($"Error: {ExcelInputFile} not found.");
             return;
         }
 
-        var questions = JsonConvert.DeserializeObject<List<string>>(File.ReadAllText(BatchFileName));
-        if (questions == null || questions.Count == 0)
+        var questions = new List<string>();
+
+        using (var workbook = new XLWorkbook(ExcelInputFile))
         {
-            Console.WriteLine("No questions found in the JSON file.");
+            var worksheet = workbook.Worksheet(SheetName);
+            var row = StartRow;
+            while (!string.IsNullOrWhiteSpace(worksheet.Cell(row, QuestionColumnIndex).GetString()))
+            {
+                questions.Add(worksheet.Cell(row, QuestionColumnIndex).GetString());
+                row++;
+            }
+        }
+
+        if (questions.Count == 0)
+        {
+            Console.WriteLine("No questions found in the Excel file.");
             return;
         }
 
-        var workbook = new XLWorkbook();
-        var worksheet = workbook.Worksheets.Add("Results");
-        worksheet.Cell(1, 1).Value = "Question";
-        worksheet.Cell(1, 2).Value = "Response";
-        worksheet.Cell(1, 3).Value = "Timestamp";
+        var outputWorkbook = new XLWorkbook();
+        var outputSheet = outputWorkbook.Worksheets.Add("Results");
+        outputSheet.Cell(1, 1).Value = "Question";
+        outputSheet.Cell(1, 2).Value = "Response";
+        outputSheet.Cell(1, 3).Value = "Response_Copy1";
+        outputSheet.Cell(1, 4).Value = "Response_Copy2";
+        outputSheet.Cell(1, 5).Value = "Timestamp";
 
-        int row = 2;
+        int outputRow = 2;
 
         await foreach (Activity act in copilotClient.StartConversationAsync(true, cancellationToken))
         {
             Console.WriteLine("Agent> " + act.Text);
-            worksheet.Cell(row, 1).Value = "System Start";
-            worksheet.Cell(row, 2).Value = act.Text;
-            worksheet.Cell(row, 3).Value = DateTime.Now;
-            row++;
+            outputSheet.Cell(outputRow, 1).Value = "System Start";
+            outputSheet.Cell(outputRow, 2).Value = act.Text;
+            outputSheet.Cell(outputRow, 3).Value = act.Text;
+            outputSheet.Cell(outputRow, 4).Value = act.Text;
+            outputSheet.Cell(outputRow, 5).Value = DateTime.Now;
+            outputRow++;
             break;
         }
 
@@ -112,6 +132,7 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
             Console.WriteLine($"\nAsking question {i + 1} of {questions.Count}");
             Console.WriteLine($"User> {question}");
             string response = "";
+
             await foreach (Activity act in copilotClient.AskQuestionAsync(question, null, cancellationToken))
             {
                 if (!string.IsNullOrEmpty(act.Text))
@@ -121,14 +142,17 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
                 }
             }
 
-            worksheet.Cell(row, 1).Value = question;
-            worksheet.Cell(row, 2).Value = response.Trim();
-            worksheet.Cell(row, 3).Value = DateTime.Now;
-            row++;
+            string trimmedResponse = response.Trim();
+
+            outputSheet.Cell(outputRow, 1).Value = question;
+            outputSheet.Cell(outputRow, 2).Value = trimmedResponse;
+            outputSheet.Cell(outputRow, 3).Value = trimmedResponse;
+            outputSheet.Cell(outputRow, 4).Value = trimmedResponse;
+            outputSheet.Cell(outputRow, 5).Value = DateTime.Now;
+            outputRow++;
         }
 
-
-        workbook.SaveAs(ExcelFileName);
+        outputWorkbook.SaveAs(ExcelFileName);
         Console.WriteLine($"\nResults saved to {ExcelFileName}");
     }
 
