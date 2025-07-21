@@ -47,6 +47,8 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
             Console.WriteLine("\nRunning Interactive mode mode...");
             await RunInteractiveMode(cancellationToken);
         }
+        Console.WriteLine("\nExecution completed. Press Enter to exit.");
+        Console.ReadLine();
     }
 
     private async Task RunInteractiveMode(CancellationToken cancellationToken)
@@ -84,7 +86,7 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
         const string ExcelInputFile = "questions.xlsx";
         const string SheetName = "Questions";
         const int QuestionColumnIndex = 1; // Column A
-        const int StartRow = 2; // Assuming row 1 is header
+        const int StartRow = 1; // Assuming row 1 is header
 
         if (!File.Exists(ExcelInputFile))
         {
