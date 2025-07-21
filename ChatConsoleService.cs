@@ -160,9 +160,9 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
 
             outputSheet.Cell(outputRow, 1).Value = question;
             outputSheet.Cell(outputRow, 2).Value = trimmedResponse;
-            outputSheet.Cell(outputRow, 3).Value = conversationId;
-            outputSheet.Cell(outputRow, 4).Value = DateTime.Now;
-            outputSheet.Cell(outputRow, 5).Value = completeReponse;
+         //   outputSheet.Cell(outputRow, 3).Value = conversationId;
+            outputSheet.Cell(outputRow, 3).Value = DateTime.Now;
+            outputSheet.Cell(outputRow, 4).Value = completeReponse;
             outputRow++;
         }
 
