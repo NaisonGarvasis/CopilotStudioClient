@@ -133,8 +133,8 @@ internal class ChatConsoleService(CopilotClient copilotClient, IHostApplicationL
             outputSheet.Cell(outputRow, 1).Value = "System Start";
             outputSheet.Cell(outputRow, 2).Value = act.Text;
             outputSheet.Cell(outputRow, 3).Value = act.Text;
-            outputSheet.Cell(outputRow, 4).Value = act.Text;
-            outputSheet.Cell(outputRow, 5).Value = DateTime.Now;
+            outputSheet.Cell(outputRow, 4).Value = DateTime.Now;
+            outputSheet.Cell(outputRow, 5).Value = string.Empty;
             outputRow++;
             break;
         }
@@ -155,7 +155,7 @@ internal class ChatConsoleService(CopilotClient copilotClient, IHostApplicationL
                     Console.WriteLine("Agent> " + act.Text);
                     response += act.Text + "\n";
                 }
-                if (act.Type == "Message")
+                if (act.Type == "message")
                 {
                     responseLog += JsonConvert.SerializeObject(act.Entities, Formatting.Indented) + "\n";
                 }
