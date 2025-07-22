@@ -49,8 +49,6 @@ internal class ChatConsoleService(CopilotClient copilotClient, IHostApplicationL
             Console.WriteLine("\nRunning Interactive mode mode...");
             await RunInteractiveMode(cancellationToken);
         }
-        Console.WriteLine("\nExecution completed. Press Enter to exit.");
-    Console.ReadLine();
         _appLifetime.StopApplication();
     }
 
