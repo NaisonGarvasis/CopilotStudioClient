@@ -12,9 +12,11 @@ using System.ComponentModel;
 
 namespace CopilotStudioClientSample;
 
-internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
+internal class ChatConsoleService(CopilotClient copilotClient, IHostApplicationLifetime appLifetime) : IHostedService
 {
     private static readonly string ExcelFileName = $"Response_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.xlsx";
+    private readonly IHostApplicationLifetime _appLifetime = appLifetime;
+
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -49,9 +51,10 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
         }
         Console.WriteLine("\nExecution completed. Press Enter to exit.");
     Console.ReadLine();
+        _appLifetime.StopApplication();
     }
 
-    private async Task RunInteractiveMode(CancellationToken cancellationToken)
+    private async Task<Task> RunInteractiveMode(CancellationToken cancellationToken)
     {
         System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
         Console.Write("\nUser> ");
@@ -79,9 +82,10 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
         }
 
         sw.Stop();
+        return Task.CompletedTask;
     }
 
-    private async Task RunBatchMode(CancellationToken cancellationToken)
+    private async Task<Task> RunBatchMode(CancellationToken cancellationToken)
     {
         const string ExcelInputFile = "questions.xlsx";
         const string SheetName = "Questions";
@@ -91,7 +95,7 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
         if (!File.Exists(ExcelInputFile))
         {
             Console.WriteLine($"Error: {ExcelInputFile} not found.");
-            return;
+            return Task.CompletedTask;
         }
 
         var questions = new List<string>();
@@ -110,7 +114,7 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
         if (questions.Count == 0)
         {
             Console.WriteLine("No questions found in the Excel file.");
-            return;
+            return Task.CompletedTask;
         }
 
         var outputWorkbook = new XLWorkbook();
@@ -172,6 +176,8 @@ internal class ChatConsoleService(CopilotClient copilotClient) : IHostedService
 
         outputWorkbook.SaveAs(ExcelFileName);
         Console.WriteLine($"\nResults saved to {ExcelFileName}");
+
+        return Task.CompletedTask;
     }
 
     private async Task PrintActivityAsync(IActivity act, CancellationToken cancellationToken)
