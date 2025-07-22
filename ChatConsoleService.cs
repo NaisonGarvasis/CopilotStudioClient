@@ -158,12 +158,11 @@ internal class ChatConsoleService(CopilotClient copilotClient, IHostApplicationL
                 if (act.Type == "message")
                 {
                     responseLog += JsonConvert.SerializeObject(act.Entities, Formatting.Indented) + "\n";
+                    if (act.Conversation != null)
+                    {
+                        conversationId = act.Conversation.Id;
+                    }
                 }
-                if (act.Conversation != null)
-                {
-                    conversationId += act.Conversation.Id;
-                }
-
             }
 
             string trimmedResponse = response.Length > 32767 ? response.Substring(0, 32767) : response;
