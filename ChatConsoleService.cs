@@ -117,22 +117,28 @@ internal class ChatConsoleService(CopilotClient copilotClient, IHostApplicationL
 
         var outputWorkbook = new XLWorkbook();
         var outputSheet = outputWorkbook.Worksheets.Add("Results");
-        outputSheet.Cell(1, 1).Value = "Question";
-        outputSheet.Cell(1, 2).Value = "Response";
-        outputSheet.Cell(1, 3).Value = "Conversation id";
-        outputSheet.Cell(1, 4).Value = "Timestamp";
-        outputSheet.Cell(1, 5).Value = "Response Log";
+
+        // Add headers, now shifted by 1 column to accommodate ID
+        outputSheet.Cell(1, 1).Value = "ID";
+        outputSheet.Cell(1, 2).Value = "Question";
+        outputSheet.Cell(1, 3).Value = "Response";
+        outputSheet.Cell(1, 4).Value = "Conversation id";
+        outputSheet.Cell(1, 5).Value = "Timestamp";
+        outputSheet.Cell(1, 6).Value = "Response Log";
+        outputSheet.Cell(1, 7).Value = "Drift";
 
         int outputRow = 2;
 
         await foreach (Activity act in copilotClient.StartConversationAsync(true, cancellationToken))
         {
             Console.WriteLine("Agent> " + act.Text);
-            outputSheet.Cell(outputRow, 1).Value = "System Start";
-            outputSheet.Cell(outputRow, 2).Value = act.Text;
+            outputSheet.Cell(outputRow, 1).Value = 0; // ID for system start
+            outputSheet.Cell(outputRow, 2).Value = "System Start";
             outputSheet.Cell(outputRow, 3).Value = act.Text;
-            outputSheet.Cell(outputRow, 4).Value = DateTime.Now;
-            outputSheet.Cell(outputRow, 5).Value = string.Empty;
+            outputSheet.Cell(outputRow, 4).Value = act.Text;
+            outputSheet.Cell(outputRow, 5).Value = DateTime.Now;
+            outputSheet.Cell(outputRow, 6).Value = string.Empty;
+            outputSheet.Cell(outputRow, 7).Value = ""; // Drift
             outputRow++;
             break;
         }
@@ -166,19 +172,38 @@ internal class ChatConsoleService(CopilotClient copilotClient, IHostApplicationL
             string trimmedResponse = response.Length > 32767 ? response.Substring(0, 32767) : response;
             string trimmedResponseLog = responseLog.Length > 32767 ? responseLog.Substring(0, 32767) : responseLog;
 
-            outputSheet.Cell(outputRow, 1).Value = question;
-            outputSheet.Cell(outputRow, 2).Value = trimmedResponse;
-            outputSheet.Cell(outputRow, 3).Value = conversationId;
-            outputSheet.Cell(outputRow, 4).Value = DateTime.Now;
-            outputSheet.Cell(outputRow, 5).Value = trimmedResponseLog;
+            outputSheet.Cell(outputRow, 1).Value = i + 1; // ID
+            outputSheet.Cell(outputRow, 2).Value = question;
+            outputSheet.Cell(outputRow, 3).Value = trimmedResponse;
+            outputSheet.Cell(outputRow, 4).Value = conversationId;
+            outputSheet.Cell(outputRow, 5).Value = DateTime.Now;
+            outputSheet.Cell(outputRow, 6).Value = trimmedResponseLog;
+            outputSheet.Cell(outputRow, 7).Value = ""; // Drift
             outputRow++;
         }
+
+        // Determine the last used row and column
+        int lastRow = outputSheet.LastRowUsed().RowNumber();
+        int lastCol = outputSheet.LastColumnUsed().ColumnNumber();
+
+        // Apply wrapping to Response and Response Log columns
+        outputSheet.Column(3).Style.Alignment.WrapText = true;
+        outputSheet.Column(6).Style.Alignment.WrapText = true;
+
+        // Wrap the used range in a table
+        var tableRange = outputSheet.Range(1, 1, lastRow, lastCol);
+        tableRange.CreateTable("ResultsTable");
+
+        // Optionally apply a theme/style
+        tableRange.Style.Font.FontName = "Calibri";
+        tableRange.Style.Font.FontSize = 11;
 
         outputWorkbook.SaveAs(ExcelFileName);
         Console.WriteLine($"\nResults saved to {ExcelFileName}");
 
         return Task.CompletedTask;
     }
+
 
     private async Task PrintActivityAsync(IActivity act, CancellationToken cancellationToken)
     {
