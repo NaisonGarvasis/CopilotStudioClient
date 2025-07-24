@@ -41,6 +41,7 @@ internal class ChatConsoleService(CopilotClient copilotClient, IHostApplicationL
         if (runInBatch)
         {
             Console.WriteLine("\nRunning batch mode...");
+            await Task.Delay(30000);
             await RunBatchMode(cancellationToken);
         }
 
