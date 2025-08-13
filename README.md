@@ -121,6 +121,17 @@ With the above information, you can now run the client `CopilostStudioClientSamp
 
 3. Run the CopilotStudioClientSample.exe program.
 
+### Steps to Build and Run the Application from Command Prompt
+1. Navigate into the project folder
+2. Build the project in Release mode
+   ```
+   dotnet build -c Release
+   ```
+3. Run the application in Release mode
+   ```
+   dotnet run -c Release
+   ```
+
 This should challenge you for login in a new browser window or tab and once completed, connect ot the Copilot Studio Hosted Agent, allowing you to communicate via a console interface.
 
 ## Authentication
